@@ -8,7 +8,7 @@ const ImageCapture = ({ isOpen, onClose, mode }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null);
-  
+
   const webcamRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -40,7 +40,7 @@ const ImageCapture = ({ isOpen, onClose, mode }) => {
         setError('Please upload an image file');
         return;
       }
-      
+
       if (file.size > 5 * 1024 * 1024) {
         setError('Image size should be less than 5MB');
         return;
@@ -61,79 +61,101 @@ const ImageCapture = ({ isOpen, onClose, mode }) => {
 
   const handleAnalyze = async () => {
     if (!imagePreview) return;
-    
+
     setIsAnalyzing(true);
     setError(null);
-  
-    const TIMEOUT_DURATION = 30000; // 30 seconds timeout
-    const MAX_RETRIES = 3;
-    
-    const fetchWithTimeout = async (formData) => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_DURATION);
-      
-      try {
-        const response = await fetch('https://hx479r0c-3000.inc1.devtunnels.ms/process/analysis', {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Nzk3ODY1YTYwNmViNjE1MTdkNWVhMTUiLCJuYW1lIjoiQW5pcnVkaCBTaW5naCIsImVtYWlsIjoidmlvbGVudGFuaXJ1ZGhAZ21haWwuY29tIiwic3RhdHVzIjoiYWN0aXZlIiwicm9sZSI6InVzZXIiLCJjb2lucyI6MTAwLCJzb3VyY2UiOiJzZWxmIiwidG9rZW4iOiIiLCJ2ZXJzaW9uIjo0NSwiYXR0ZW1wdCI6MCwicHJvZmlsZSI6ZmFsc2UsImlhdCI6MTczOTUyNTg1MywiZXhwIjoxNzQwMTMwNjUzfQ.e616HP0NEpiUwNo9thRh80pJ_rTD4kgEjy4il2RxNiU'
-          },
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
-      } finally {
-        clearTimeout(timeoutId);
-      }
-    };
-  
-    const analyzeWithRetry = async () => {
-      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        try {
-          const formData = new FormData();
-          const base64Image = imagePreview.split(',')[1];
-          const binaryImage = atob(base64Image);
-          const arrayBuffer = new Uint8Array(binaryImage.length);
-          for (let i = 0; i < binaryImage.length; i++) {
-            arrayBuffer[i] = binaryImage.charCodeAt(i);
-          }
-          const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
-          formData.append('images', blob, 'captured-image.jpg');
-  
-          const data = await fetchWithTimeout(formData);
-          return data;
-        } catch (error) {
-          if (error.name === 'AbortError') {
-            setError(`Request timeout (Attempt ${attempt}/${MAX_RETRIES})`);
-          } else {
-            setError(`Analysis failed (Attempt ${attempt}/${MAX_RETRIES}): ${error.message}`);
-          }
-          
-          if (attempt === MAX_RETRIES) throw error;
-          
-          // Exponential backoff
-          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
-        }
-      }
-    };
-  
+
     try {
-      const result = await analyzeWithRetry();
-      setAnalysisResult(result);
+      // Simulate API call for analysis
+      const simulatedResponse = {
+        status: 'success',
+        message: 'Analysis found.',
+        data: {
+          title: 'Blended Chocolate Nutritional Analysis',
+          description:
+            'Detailed analysis of blended chocolate product, including nutritional information, ingredients, potential benefits and harms, and a health quality score.',
+          product_details: {
+            ingredients:
+              'Cocoa Butter (42%), Cocoa Solids (31%), Sugar, Milk solids, Nature Identical Flavouring Substances, Emulsifiers (442, 476)',
+            additives: [
+              {
+                additive_name: 'Emulsifiers (442, 476)',
+                description:
+                  'These are common food additives used to stabilize the mixture.',
+              },
+            ],
+            nutritional_information: {
+              energy_kcal: 598,
+              protein_g: 7.6,
+              carbohydrates_g: 40.7,
+              total_sugars_g: 24.4,
+              added_sugars_g: 23.3,
+              total_fat_g: 47.4,
+              saturated_fat_g: 32.1,
+              trans_fat_g: 0.1,
+              cholesterol_mg: 4.4,
+              sodium_mg: 18,
+              fibres_g: null,
+            },
+            vitamins: [],
+            product_category: 'chocolate',
+          },
+          analysis_report: {
+            health_quality_score: '55',
+            health_quality_rating: 'Fair',
+            dietary_compatibility: [
+              {
+                group: 'Lactose intolerant',
+                status: 'avoid',
+                recommendation:
+                  'Contains milk; may not be suitable for those with lactose intolerance.',
+              },
+              {
+                group: 'Diabetics',
+                status: 'caution',
+                recommendation:
+                  'High in sugar; consume in moderation and monitor blood sugar levels.',
+              },
+              {
+                group: 'People with nut allergies',
+                status: 'caution',
+                recommendation:
+                  'May contain tree nuts. Avoid if you have a severe nut allergy.',
+              },
+              {
+                group: 'People with soy allergies',
+                status: 'caution',
+                recommendation:
+                  'May contain soy. Avoid if you have a soy allergy.',
+              },
+            ],
+            allergens: ['Milk', 'Tree Nuts', 'Soy'],
+            potential_side_effects: [
+              'May cause digestive upset in some individuals due to high fat content and added sugars.',
+              'May cause weight gain if consumed regularly in excess.',
+            ],
+            benefits: [
+              'Provides energy, cocoa flavanols may offer antioxidant benefits.',
+            ],
+            advices: [
+              'Consume in moderation due to high sugar and fat content.',
+              'Pair with a balanced meal to minimize its impact on blood sugar levels.',
+              'Consider portion control.',
+            ],
+          },
+        },
+      };
+
+      // Simulate delay
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      setAnalysisResult(simulatedResponse.data); // Set the result
     } catch (error) {
-      setError(`Analysis failed after ${MAX_RETRIES} attempts: ${error.message}`);
+      setError('Failed to analyze the image.');
     } finally {
       setIsAnalyzing(false);
     }
   };
-  
 
   const handleClose = () => {
     setImagePreview(null);
@@ -220,8 +242,10 @@ const ImageCapture = ({ isOpen, onClose, mode }) => {
             )
           ) : (
             <div className="h-full">
+              {/* Image Preview */}
               <img src={imagePreview} alt="Preview" className="h-full w-full object-contain" />
-              
+
+              {/* Confirmation Buttons */}
               {showConfirmation && !analysisResult && (
                 <div className="absolute bottom-0 left-0 right-0 bg-black/80 p-4">
                   <div className="flex justify-between gap-4">
@@ -246,16 +270,16 @@ const ImageCapture = ({ isOpen, onClose, mode }) => {
 
               {/* Analysis Result Display */}
               {analysisResult && (
-                <div className="absolute bottom-0 left-0 right-0 bg-black/80 p-4">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-bold mb-2">Analysis Result</h3>
-                    <pre className="text-sm overflow-auto">
-                      {JSON.stringify(analysisResult, null, 2)}
-                    </pre>
-                  </div>
+                <div className="absolute inset-x-0 bottom-0 bg-black/80 p-4 overflow-auto max-h-[50%]">
+                  {/* Render Analysis using ScanAfter Layout */}
+                  <h3 className="text-lg font-bold mb-2">Analysis Result</h3>
+                  <pre className="text-sm text-gray-200 overflow-auto max-h-[200px] bg-gray-800 p-2 rounded-md">
+                    {JSON.stringify(analysisResult, null, 2)}
+                  </pre>
+                  {/* Retake Button */}
                   <button
                     onClick={handleRetake}
-                    className="w-full bg-green-500 text-white py-3 rounded-full"
+                    className="w-full bg-green-500 text-white py-3 mt-4 rounded-full"
                   >
                     Analyze Another Image
                   </button>
