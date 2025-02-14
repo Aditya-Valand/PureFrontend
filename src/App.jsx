@@ -29,7 +29,7 @@ const App = () => {
       {/* <Navbar/> */}
     <Router>
       <Routes>
-        <Route path="/" element={<Home/>} />
+        <Route path="/" element={<MobileNavigation/>} />
         <Route path="/account" element={<SignUpForm />} />
         <Route path="/Analyze" element={<ScanAfter/>} />
         <Route path="/insightbuddy" element={<ChatBot />} />

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import apiClient from '../utils/axios';
 
-
 const SignupForm = () => {
   const [isSignUp, setIsSignUp] = useState(true);
   const [formData, setFormData] = useState({
@@ -12,19 +11,21 @@ const SignupForm = () => {
     rememberPassword: false,
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  // Reset form and message when switching modes
   useEffect(() => {
-    // Reset form and message when switching modes
     setFormData({
+      name: isSignUp ? '' : formData.name,
       email: '',
       password: '',
-      rememberPassword: false
+      rememberPassword: false,
     });
     setMessage('');
   }, [isSignUp]);
 
+  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prevData) => ({
@@ -33,16 +34,25 @@ const SignupForm = () => {
     }));
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage('');
 
+    // Password validation for sign-up
+    if (isSignUp && formData.password.length < 8) {
+      setMessage('Password must be at least 8 characters long.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const endpoint = isSignUp ? '/signup' : '/signin';
       const response = await apiClient.post(endpoint, {
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        ...(isSignUp && { name: formData.name }), // Include name for sign-up
       });
 
       if (!isSignUp) {
@@ -51,14 +61,14 @@ const SignupForm = () => {
       }
 
       setMessage(response.data.message || (isSignUp ? 'Signup successful!' : 'Login successful!'));
-      
+
       // Clear form after successful submission
       setFormData({
+        name: '',
         email: '',
         password: '',
-        rememberPassword: false
+        rememberPassword: false,
       });
-      
     } catch (error) {
       setMessage(error.response?.data?.message || (isSignUp ? 'Signup failed' : 'Login failed'));
     } finally {
@@ -66,12 +76,12 @@ const SignupForm = () => {
     }
   };
 
+  // Google login integration
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
         const response = await apiClient.post('/google', {
-          credentials: tokenResponse.credential,
-          client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+          token: tokenResponse.access_token, // Use access_token instead of credential
         });
         localStorage.setItem('token', response.data.data);
         setMessage('Google login successful!');
@@ -81,23 +91,18 @@ const SignupForm = () => {
     },
     onError: () => {
       setMessage('Google login failed');
-    }
+    },
   });
 
+  // Toggle between sign-up and log-in modes
   const toggleAuthMode = () => {
     setIsSignUp(!isSignUp);
-    // Reset form when switching modes
-    setFormData({
-      name: isSignUp ? '' : formData.name,
-      email: '',
-      password: '',
-    });
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-lg overflow-hidden">
-        <div className="bg-[#2C3639] h-48 rounded[11px_11px_11px_11px] px-8 pt-8">
+        <div className="bg-[#2C3639] h-48 px-8 pt-8">
           <button onClick={toggleAuthMode} className="text-white mb-8">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -123,7 +128,7 @@ const SignupForm = () => {
                   name="name"
                   placeholder="Full Name"
                   className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:border-green-500"
-                  required
+                  required={isSignUp}
                   value={formData.name}
                   onChange={handleInputChange}
                 />
@@ -145,7 +150,7 @@ const SignupForm = () => {
 
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 name="password"
                 placeholder="Password"
@@ -157,8 +162,12 @@ const SignupForm = () => {
               <button
                 type="button"
                 id="togglePassword"
-                className="absolute right-4 top-1/2 transform -translate-y-1/2"
-              ></button>
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
             </div>
 
             <div className="flex items-center justify-between">
@@ -184,7 +193,7 @@ const SignupForm = () => {
                 isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2C3639]'
               }`}
             >
-              {isLoading ? 'Processing...' : (isSignUp ? 'Sign up' : 'Log in')}
+              {isLoading ? 'Processing...' : isSignUp ? 'Sign up' : 'Log in'}
             </button>
 
             <div className="text-center text-gray-500 text-sm mt-4">
@@ -201,10 +210,15 @@ const SignupForm = () => {
               onClick={() => googleLogin()}
               className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 py-3 rounded-xl hover:bg-gray-50 transition duration-200"
             >
-              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+              <img src="/google-icon.png" alt="Google" className="w-5 h-5" />
               Sign In with Google
             </button>
           </form>
+          {message && (
+            <p className={`mt-4 text-center ${message.includes('failed') ? 'text-red-500' : 'text-green-500'}`}>
+              {message}
+            </p>
+          )}
         </div>
       </div>
     </div>

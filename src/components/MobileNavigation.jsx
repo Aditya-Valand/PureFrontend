@@ -7,6 +7,7 @@ import chat from "../assets/chat.svg"
 import feature from "../assets/feature.png"
 import logo from "../assets/logo.png"
 import ImageCapture from './ImageCapture';
+import ScanAfter from './scanAfter';
 
 const MobileNavigation = () => {
   const [isFabMenuOpen, setFabMenuOpen] = useState(false);
@@ -14,6 +15,8 @@ const MobileNavigation = () => {
   const [activeNavItem, setActiveNavItem] = useState(null);
   const [showImageCapture, setShowImageCapture] = useState(false);
   const [captureMode, setCaptureMode] = useState(null);
+  const [analysisData, setAnalysisData] = useState(null);
+  
 
 
   const navItems = [
@@ -47,8 +50,10 @@ const MobileNavigation = () => {
   ];
 
   const handleCloseImageCapture = () => {
-    setShowImageCapture(false);
-    setCaptureMode(null);
+    if (!analysisData) {
+      setShowImageCapture(false);
+      setCaptureMode(null);
+    }
   };
 
   return (
@@ -121,10 +126,17 @@ const MobileNavigation = () => {
       </button>
 
       <ImageCapture
-        isOpen={showImageCapture}
-        onClose={handleCloseImageCapture}
-        mode={captureMode}
-      />
+  isOpen={showImageCapture}
+  onClose={handleCloseImageCapture}
+  mode={captureMode}
+  // Add these lines
+  onAnalysisComplete={(data) => {
+    setAnalysisData(data);
+    setShowImageCapture(false);
+  }}
+/>
+{/* Add ScanAfter component */}
+{analysisData && <ScanAfter analysisData={analysisData} />}
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg py-4 px-6 rounded-t-3xl border-t border-gray-200/50 shadow-lg">
