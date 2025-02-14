@@ -72,9 +72,6 @@ const ImageCapture = ({ isOpen, onClose, mode, onAnalysisComplete }) => {
       const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_DURATION);
       
       try {
-        // Log the form data for debugging
-        console.log('FormData contents:', Array.from(formData.entries()));
-        
         const response = await fetch('http://localhost:3000/process/analysis', {
           method: 'POST',
           body: formData,

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import apiClient from '../utils/axios';
+import { useAuth } from '../context/AuthContext';
 
 const SignupForm = () => {
+  const { login } = useAuth();
   const [isSignUp, setIsSignUp] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
@@ -17,7 +19,7 @@ const SignupForm = () => {
   // Reset form and message when switching modes
   useEffect(() => {
     setFormData({
-      name: isSignUp ? '' : formData.name,
+      name: '',
       email: '',
       password: '',
       rememberPassword: false,
@@ -38,65 +40,50 @@ const SignupForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setMessage('');
-
-    // Password validation for sign-up
-    if (isSignUp && formData.password.length < 8) {
-      setMessage('Password must be at least 8 characters long.');
-      setIsLoading(false);
-      return;
-    }
-
     try {
+      console.log(formData);
       const endpoint = isSignUp ? '/signup' : '/signin';
-      const response = await apiClient.post(endpoint, {
-        email: formData.email,
-        password: formData.password,
-        ...(isSignUp && { name: formData.name }), // Include name for sign-up
-      });
+      const response = await apiClient.post(endpoint, formData);
 
       if (!isSignUp) {
-        // Save token on successful login
-        localStorage.setItem('token', response.data.data);
+        login({ token: response.data.data }); // Update context and save token in cookies
       }
-
-      setMessage(response.data.message || (isSignUp ? 'Signup successful!' : 'Login successful!'));
-
-      // Clear form after successful submission
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        rememberPassword: false,
-      });
+      setMessage(response.data.message || 'Success!');
+      setFormData({ email: '', password: '', rememberPassword: false });
+      console.log(response.data);
     } catch (error) {
-      setMessage(error.response?.data?.message || (isSignUp ? 'Signup failed' : 'Login failed'));
+      setMessage(error.response?.data?.message || 'Error occurred');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Google login integration
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
+        console.log(tokenResponse);
         const response = await apiClient.post('/google', {
-          token: tokenResponse.access_token, // Use access_token instead of credential
+          access_token: tokenResponse.access_token,
         });
-        localStorage.setItem('token', response.data.data);
+        login({ token: response.data.data }); // Update context and save token in cookies
         setMessage('Google login successful!');
+        console.log(response.data.data);
       } catch (error) {
         setMessage(error.response?.data?.message || 'Google login failed');
       }
     },
-    onError: () => {
-      setMessage('Google login failed');
-    },
+    onError: () => setMessage('Google login failed'),
   });
 
   // Toggle between sign-up and log-in modes
   const toggleAuthMode = () => {
     setIsSignUp(!isSignUp);
+    // Reset form when switching modes
+    setFormData({
+      name: !isSignUp ? '' : formData.name,
+      email: '',
+      password: '',
+    });
   };
 
   return (

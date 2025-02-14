@@ -16,29 +16,34 @@ import DietSelection from './components/DietSelection';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import GoalSelection from './components/GoalSelection';
 import AllergySelection from './components/AllergySelection';
-import OnboardingFlow from './components/Onboardingflow';
+import OnboardingFlow from './components/OnboardingFlow.jsx';
 import MobileNavigation from './components/MobileNavigation';
-import ScanAfter from './components/scanAfter';
+// import ScanAfter from './components/ScanAfter';
+import ScanAfter from './components/scanAfter.jsx';
 import ChatBot from './components/ChatBot';
 import UploadImage from './components/UploadImage';
+
+import { AuthProvider } from './context/AuthContext';
+
 const App = () => {
-  const [user, setUser] = useState(null);
 
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       {/* <Navbar/> */}
-    <Router>
-      <Routes>
-        <Route path="/" element={<MobileNavigation/>} />
-        <Route path="/account" element={<SignUpForm />} />
-        <Route path="/Analyze" element={<ScanAfter/>} />
-        <Route path="/insightbuddy" element={<ChatBot />} />
-        <Route path="/google-login" element={<GoogleLogin />} />
-        <Route path="/aboutus" element={<AboutUs />} />
-        <Route path="/mobile" element={<MobileNavigation />} />
-        <Route path="/verify" element={<OnboardingFlow />} />
-      </Routes>
-    </Router>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<MobileNavigation/>} />
+            <Route path="/account" element={<SignUpForm />} />
+            <Route path="/Analyze" element={<ScanAfter/>} />
+            <Route path="/insightbuddy" element={<ChatBot />} />
+            <Route path="/google-login" element={<GoogleLogin />} />
+            <Route path="/aboutus" element={<AboutUs />} />
+            <Route path="/mobile" element={<MobileNavigation />} />
+            <Route path="/verify" element={<OnboardingFlow />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
     </GoogleOAuthProvider>
     
   );
