@@ -73,7 +73,7 @@ const ImageCapture = ({ isOpen, onClose, mode }) => {
       const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_DURATION);
       
       try {
-        const response = await fetch('https://hx479r0c-3000.inc1.devtunnels.ms/process/analysis', {
+        const response = await fetch('http://localhost:3000/process/analysis', {
           method: 'POST',
           body: formData,
           headers: {

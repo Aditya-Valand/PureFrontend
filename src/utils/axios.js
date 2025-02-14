@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    baseURL: 'http://localhost:3000', // Adjust as per your backend configuration
+    baseURL: 'http://localhost:3000/auth/', // Adjust as per your backend configuration
     headers: {
         'Content-Type': 'application/json',
     },
