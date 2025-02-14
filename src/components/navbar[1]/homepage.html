@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pure Insight</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    screens: {
+                        'md': '768px'
+                    },
+                    colors: {
+                        'purple': {
+                            light: '#a78bfa',
+                            DEFAULT: '#8b5cf6',
+                            dark: '#7c3aed'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400|Sree+Krushnadevaraya:400" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Desktop Navigation -->
+    <nav class="fixed w-full top-4 px-4 z-50">
+        <div class="max-w-7xl mx-auto relative">
+            <!-- Navigation Container -->
+            <div class="hidden md:flex items-center justify-between space-x-6 ">
+                
+                <a href="#" class="logo-link flex items-center space-x-2 p-2 rounded-[2.5rem]">
+                    <img src="/logo.png" alt="MyWebsite Logo" class="h-16 w-auto logo-image">
+                    
+                </a>
+
+                <!-- Middle Section -->
+                <div class="glass-effect-strong rounded-[70.5rem] p-2">
+                    <div class="flex items-center space-x-1 px-4 ">
+                        <a href="#works" class="nav-link text-gray-800 font-medium rounded-[2.5rem]">Services</a>
+                        <a href="#benefits" class="nav-link text-gray-800 font-medium rounded-[2.5rem]">Plan</a>
+                        <a href="#about" class="nav-link text-gray-800 font-medium rounded-[2.5rem]">About Us</a>
+                        <a href="#process" class="nav-link text-gray-800 font-medium rounded-[2.5rem]">InsightBuddy</a>
+                        <a href="#pricing" class="nav-link text-gray-800 font-medium rounded-[2.5rem]">Blog</a>
+                        <a href="#faq" class="nav-link text-gray-800 font-medium rounded-[2.5rem]">FAQ</a>
+                    </div>
+                </div>
+
+                <!-- Right Section -->
+                <div class="glass-effect rounded-[10.5rem] p-2 flex items-center space-x-3">
+                    <button class="glass-button bg-white/20 text-gray-800 px-6 py-2 rounded-[2.5rem] hover:bg-white/30 transition-all duration-300 font-medium">
+                        Sign In
+                    </button>
+                    <div class="profile-button glass-button bg-purple-600 px-4 py-2 rounded-[2.5rem] hover:bg-purple-700 transition-all duration-300 shadow-lg hover:shadow-purple-500/30">
+                        <button class="flex items-center space-x-2">
+                            <div class="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <span class="text-white font-medium">Profile</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white transition-transform duration-300 profile-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</body>
+</html>
