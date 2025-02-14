@@ -72,7 +72,7 @@ const AllergySelection = ({ onNext, onBack, onSkip, currentStep, totalSteps, dat
   };
 
   const handleNext = () => {
-    onNext({ allergies: selectedAllergies });
+    onNext({ ...data, allergies: selectedAllergies.join(', ') });
   };
 
   return (

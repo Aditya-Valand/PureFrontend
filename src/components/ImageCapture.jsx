@@ -7,6 +7,7 @@ const ImageCapture = ({ isOpen, onClose, mode, onAnalysisComplete }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState(null);
+  const [analysisResult, setAnalysisResult] = useState(null)
   
   const webcamRef = useRef(null);
   const fileInputRef = useRef(null);

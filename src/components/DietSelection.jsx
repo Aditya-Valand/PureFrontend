@@ -48,7 +48,7 @@ const DietSelection = ({ onNext, onBack, onSkip, currentStep, totalSteps, data }
   // Handle next button click
   const handleNext = () => {
     if (selectedDiet) {
-      onNext({ diet: selectedDiet }); // Pass selected diet to parent
+      onNext({ ...data, diet: selectedDiet }); // Pass selected diet to parent
     }
   };
 

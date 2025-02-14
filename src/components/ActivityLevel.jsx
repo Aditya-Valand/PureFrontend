@@ -37,7 +37,7 @@ const ActivityLevel = ({ onNext, onBack, onSkip, currentStep, totalSteps, data }
 
   const handleNext = () => {
     if (selectedActivity && onNext) {
-      onNext({ activityLevel: selectedActivity });
+      onNext({ ...data, activity: activityOptions[selectedActivity-1].title.toLowerCase() });
     }
   };
 

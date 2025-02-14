@@ -1,12 +1,25 @@
 import React, { useState } from 'react';
 import AgeSelection from './AgeSelection';
-import AllergySelection from './AllergySelection'; // Changed to default import
-import  GoalSelection  from './GoalSelection';
-import HeightSelection from './HeightSelection';
-import ActivityLevel from './ActivityLevel';
-import DietSelection from './DietSelection';
+import AllergySelection from './AllergySelection.jsx'; // Changed to default import
+import  GoalSelection  from './GoalSelection.jsx';
+import HeightSelection from './HeightSelection.jsx';
+import ActivityLevel from './ActivityLevel.jsx';
+import DietSelection from './DietSelection.jsx';
+import WeightSelection from './WeightSelection.jsx';
+import GenderSelection from './GenderSelection.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
+import axios from 'axios';
 const steps = [
+  
+  {
+    id: 0,
+    title: "Allergies",
+    component: AllergySelection,
+    isSkippable: true
+  },
   {
     id: 1,
     title: "Age Selection",
@@ -15,50 +28,136 @@ const steps = [
   },
   {
     id: 2,
+    title: "Gender Selection",
+    component: GenderSelection,
+    isSkippable: false
+  },
+  {
+    id: 3,
     title: "Height Selection",
     component: HeightSelection,
     isSkippable: false
   },
   {
-    id: 3,
+    id:4,
+    title: "Weight Selection",
+    component: WeightSelection,
+    isSkippable: false
+  },
+  {
+    id: 5,
     title: "Activity Selection",
     component: ActivityLevel,
     isSkippable: true
   },
   {
-    id: 4,
+    id: 6,
     title: "Diet Selection",
     component: DietSelection,
     isSkippable: true
   },
   {
-    id: 5,
+    id: 7,
     title: "Primary Goal",
     component: GoalSelection,
     isSkippable: true
   },
-  {
-    id: 6,
-    title: "Allergies",
-    component: AllergySelection,
-    isSkippable: true
-  }
 ];
 
+
+
 const OnboardingFlow = () => {
+  const { completeOnboarding } = useAuth();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({});
   const [skippedSteps, setSkippedSteps] = useState([]);
 
-  const handleNext = (stepData) => {
-    setFormData(prev => ({ ...prev, ...stepData }));
-    
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
-    } else {
-      handleComplete();
+  const [formData, setFormData] = useState({
+    age: '',
+    gender: '',
+    height: '',
+    weight: '',
+    activity: '',
+    diet: '',
+    goals: '',
+    allergies: '',
+  });
+
+  const handleComplete = async () => {
+    try {
+      const token = Cookies.get('token');
+      
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+  
+      const response = await axios.put(
+        'http://localhost:3000/user/profile',
+        {
+          userProfile: formData
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+  
+      if (response.status === 200) {
+        completeOnboarding();
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error.response?.data || error.message);
     }
   };
+  
+  
+  const handleNext = async (stepData) => {
+    try {
+      const token = Cookies.get('token');
+      
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+  
+      // Update local state
+      const updatedFormData = {
+        ...formData,
+        ...stepData
+      };
+      setFormData(updatedFormData);
+  
+      // Make API call to update profile
+      const response = await axios.put(
+        'http://localhost:3000/user/profile',
+        {
+          userProfile: updatedFormData
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+  
+      if (response.status === 200) {
+        if (currentStep < steps.length) {
+          setCurrentStep((prev) => prev + 1);
+        } else {
+          handleComplete();
+        }
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error.response?.data || error.message);
+    }
+  };
+  
+  
+  
+  
 
   const handleBack = () => {
     if (currentStep > 0) {
@@ -77,7 +176,7 @@ const OnboardingFlow = () => {
     if (steps[currentStep].isSkippable) {
       setSkippedSteps(prev => [...prev, currentStep]);
       
-      if (currentStep < steps.length - 1) {
+      if (currentStep < steps.length) {
         setCurrentStep(prev => prev + 1);
       } else {
         handleComplete();
@@ -85,17 +184,7 @@ const OnboardingFlow = () => {
     }
   };
 
-  const handleComplete = () => {
-    // Filter out any undefined values from skipped steps
-    const finalData = Object.fromEntries(
-      Object.entries(formData).filter(([_, value]) => value !== undefined)
-    );
-    
-    console.log('Completed Onboarding:', finalData);
-    console.log('Skipped Steps:', skippedSteps);
-    // Here you would typically send the data to your backend
-  };
-
+  
   const CurrentStepComponent = steps[currentStep].component;
 
   return (

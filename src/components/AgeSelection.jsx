@@ -26,7 +26,7 @@ const AgeSelection = ({ onNext, onBack, onSkip, currentStep, totalSteps, data })
   };
 
   const handleNext = () => {
-    onNext({ age: selectedAge });
+    onNext({ ...data, age: selectedAge });
   };
 
   return (

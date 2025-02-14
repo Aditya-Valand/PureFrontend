@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import apiClient from '../utils/axios';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const SignupForm = () => {
   const { login } = useAuth();
+  const navigate = useNavigate(); // Initialize navigate
+
+
   const [isSignUp, setIsSignUp] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
@@ -30,10 +34,13 @@ const SignupForm = () => {
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     setFormData((prevData) => ({
       ...prevData,
       [name]: type === 'checkbox' ? checked : value,
     }));
+
+    console.log('Updated form data:', { ...formData, [name]: type === 'checkbox' ? checked : value });
   };
 
   // Handle form submission
@@ -46,13 +53,16 @@ const SignupForm = () => {
       const response = await apiClient.post(endpoint, formData);
 
       if (!isSignUp) {
-        login({ token: response.data.data }); // Update context and save token in cookies
+        login({ token: response.data.data });
+        navigate('/verify'); // Redirect after login
       }
+
       setMessage(response.data.message || 'Success!');
       setFormData({ email: '', password: '', rememberPassword: false });
-      console.log(response.data);
     } catch (error) {
-      setMessage(error.response?.data?.message || 'Error occurred');
+      const errorMessage = error.response?.data?.message || 'Error occurred';
+      console.error('Error:', errorMessage);
+      setMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -61,29 +71,34 @@ const SignupForm = () => {
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        console.log(tokenResponse);
+        console.log('Token Response:', tokenResponse);
         const response = await apiClient.post('/google', {
           access_token: tokenResponse.access_token,
         });
-        login({ token: response.data.data }); // Update context and save token in cookies
+        login({ token: response.data.data }); // Save user data
         setMessage('Google login successful!');
-        console.log(response.data.data);
+        navigate('/verify'); // Redirect to onboarding after successful login
       } catch (error) {
+        console.error('Google Login Error:', error.response?.data || error.message);
         setMessage(error.response?.data?.message || 'Google login failed');
       }
     },
     onError: () => setMessage('Google login failed'),
   });
+  console.log('Navigate function:', navigate);
+
 
   // Toggle between sign-up and log-in modes
   const toggleAuthMode = () => {
     setIsSignUp(!isSignUp);
-    // Reset form when switching modes
-    setFormData({
-      name: !isSignUp ? '' : formData.name,
+
+    // Reset form data while keeping all fields defined
+    setFormData((prevData) => ({
+      ...prevData,
+      name: !isSignUp ? '' : prevData.name,
       email: '',
       password: '',
-    });
+    }));
   };
 
   return (
@@ -91,6 +106,7 @@ const SignupForm = () => {
       <div className="max-w-md w-full bg-white rounded-3xl shadow-lg overflow-hidden">
         <div className="bg-[#2C3639] h-48 px-8 pt-8">
           <button onClick={toggleAuthMode} className="text-white mb-8">
+            
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"

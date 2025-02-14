@@ -1,35 +1,56 @@
+// src/context/AuthContext.jsx
 import React, { createContext, useState, useContext } from 'react';
 import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 
-// Create Authentication Context
+
 const AuthContext = createContext();
 
-// AuthProvider Component
-export const AuthProvider = ({ children }) => {
+// Hook for using auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+// Main AuthProvider component
+const AuthProvider = ({ children }) => {
+
+  
   const [user, setUser] = useState(() => {
-    // Retrieve user token from cookies on initialization
     const token = Cookies.get('token');
-    return token ? { token } : null;
+    const isOnboarded = Cookies.get('isOnboarded') === 'true';
+    return token ? { token, isOnboarded } : null;
   });
 
   const login = (userData) => {
+    userData.user = jwtDecode(userData.token)
     setUser(userData);
-    Cookies.set('token', userData.token, { expires: 7 }); // Save token in cookies for 7 days
+    Cookies.set('token', userData.token, { expires: 7 });
+    Cookies.set('isOnboarded', userData.isOnboarded || false, { expires: 7 });
+  if (!userData.isOnboarded) {
+  }
   };
 
+  
   const logout = () => {
     setUser(null);
-    Cookies.remove('token'); // Remove token from cookies
+    Cookies.remove('token');
+    Cookies.remove('isOnboarded');
+  };
+
+  const completeOnboarding = () => {
+    setUser(prev => ({ ...prev, isOnboarded: true }));
+    Cookies.set('isOnboarded', true, { expires: 7 });
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{  login, logout, completeOnboarding, user }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom Hook to Use Auth Context
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export default AuthProvider;

@@ -2,43 +2,43 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Check, Scale, Heart, Leaf, Brain, BatteryCharging, Apple } from 'lucide-react';
 
 const GoalSelection = ({ onNext, onBack, onSkip, currentStep, totalSteps, data }) => {
-  const [selectedGoal, setSelectedGoal] = useState(data?.goal || null); // Use data prop
+  const [selectedGoal, setSelectedGoal] = useState(data?.goals || null); // Use data prop
   //const [currentStep] = useState(4); Remove this line. The currentStep and totalSteps are coming from parent component via props
   //const totalSteps = 5; Remove this line. The currentStep and totalSteps are coming from parent component via props
 
   const goals = [
     {
-      id: 'weight_management',
+      id: 1,
       name: 'Weight Management',
       description: 'Find products that align with your weight goals',
       icon: Scale
     },
     {
-      id: 'heart_health',
+      id: 2,
       name: 'Heart Health',
       description: 'Focus on cardiovascular-friendly products',
       icon: Heart
     },
     {
-      id: 'allergies',
+      id: 3,
       name: 'Allergy Awareness',
       description: 'Easily identify allergens and safe products',
       icon: Leaf
     },
     {
-      id: 'nutrition_optimization',
+      id: 4,
       name: 'Nutrition Optimization',
       description: 'Maximize nutritional value in your choices',
       icon: Apple
     },
     {
-      id: 'energy_boost',
+      id: 5,
       name: 'Energy & Performance',
       description: 'Find products that enhance your daily energy',
       icon: BatteryCharging
     },
     {
-      id: 'cognitive_health',
+      id: 6,
       name: 'Brain Health',
       description: 'Focus on products supporting cognitive function',
       icon: Brain
@@ -46,7 +46,7 @@ const GoalSelection = ({ onNext, onBack, onSkip, currentStep, totalSteps, data }
   ];
 
   const handleNext = () => {
-    onNext({ goal: selectedGoal }); // pass the data to the next component
+    onNext({ ...data, goals: goals[selectedGoal-1].name }); // pass the data to the next component
   };
 
   return (

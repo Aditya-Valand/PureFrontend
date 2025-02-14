@@ -1,40 +1,39 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const HeightSelection = ({ onNext, onBack, onSkip, currentStep, totalSteps, data }) => {
-  const [selectedHeight, setSelectedHeight] = useState(170);
+const WeightSelection = ({ onNext, onBack, onSkip, currentStep, totalSteps, data }) => {
+  const [selectedWeight, setSelectedWeight] = useState(70); // Default weight in kg
   const scrollContainerRef = useRef(null);
 
-  const heights = Array.isArray(data) ? data : Array.from({ length: 81 }, (_, i) => i + 140);
-  const itemHeight = 60;
+  // Generate weights from 40kg to 150kg if no data provided
+  const weights = Array.isArray(data) ? data : Array.from({ length: 111 }, (_, i) => i + 40);
+  const itemHeight = 60; // pixels
 
   useEffect(() => {
     if (scrollContainerRef.current) {
-      const initialScrollPosition = (selectedHeight - heights[0]) * itemHeight;
+      const initialScrollPosition = (selectedWeight - weights[0]) * itemHeight;
       scrollContainerRef.current.scrollTop = initialScrollPosition;
     }
-  }, [selectedHeight, heights]);
-
+  }, [selectedWeight, weights]);
   const handleNext = () => {
     // Only pass the height value, not the entire component state
-    onNext({ ...data, height: selectedHeight });
+    onNext({ ...data, weight: selectedWeight });
   };
-
   const handleScroll = (e) => {
     const scrollTop = e.target.scrollTop;
     const index = Math.round(scrollTop / itemHeight);
-    const newHeight = heights[index];
-    if (newHeight !== selectedHeight) {
-      setSelectedHeight(newHeight);
+    const newWeight = weights[index];
+    if (newWeight !== selectedWeight) {
+      setSelectedWeight(newWeight);
     }
   };
 
-  const cmToFeetInches = (cm) => {
-    const inches = cm / 2.54;
-    const feet = Math.floor(inches / 12);
-    const remainingInches = Math.round(inches % 12);
-    return `${feet}'${remainingInches}"`;
+  // Convert kg to lbs for display
+  const kgToLbs = (kg) => {
+    const lbs = Math.round(kg * 2.20462);
+    return `${lbs} lbs`;
   };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-6">
@@ -43,7 +42,7 @@ const HeightSelection = ({ onNext, onBack, onSkip, currentStep, totalSteps, data
           <button
             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
             aria-label="Go back"
-            onClick={handleNext}
+            onClick={onBack}
           >
             <ChevronLeft className="h-6 w-6" />
           </button>
@@ -66,20 +65,20 @@ const HeightSelection = ({ onNext, onBack, onSkip, currentStep, totalSteps, data
           </div>
         </div>
 
-        {/* Height Selection */}
+        {/* Weight Selection */}
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-            What's Your Height?
+            What's Your Weight?
           </h2>
           <p className="text-gray-500 text-sm mb-6">
-            Select your height to help us personalize your experience
+            Select your weight to help us personalize your experience
           </p>
 
-          {/* Height Picker */}
+          {/* Weight Picker */}
           <div className="relative h-[180px] mx-auto">
             {/* Highlight for selected item */}
             <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[60px] bg-[#E4F8E6] rounded-lg pointer-events-none flex items-center justify-center text-xl font-semibold text-green-600">
-              {selectedHeight} cm ({cmToFeetInches(selectedHeight)})
+              {selectedWeight} kg ({kgToLbs(selectedWeight)})
             </div>
 
             {/* Gradient overlays */}
@@ -98,14 +97,14 @@ const HeightSelection = ({ onNext, onBack, onSkip, currentStep, totalSteps, data
             >
               {/* Padding to center the selected item */}
               <div className="h-[60px]" />
-              {heights.map((height) => (
+              {weights.map((weight) => (
                 <div
-                  key={height}
+                  key={weight}
                   className="h-[60px] flex items-center justify-center text-xl cursor-pointer transition-all"
                   style={{ scrollSnapAlign: 'center' }}
                   onClick={() => {
                     if (scrollContainerRef.current) {
-                      const targetScroll = (height - heights[0]) * itemHeight;
+                      const targetScroll = (weight - weights[0]) * itemHeight;
                       scrollContainerRef.current.scrollTo({
                         top: targetScroll,
                         behavior: 'smooth',
@@ -113,7 +112,7 @@ const HeightSelection = ({ onNext, onBack, onSkip, currentStep, totalSteps, data
                     }
                   }}
                 >
-                  {height}
+                  {weight}
                 </div>
               ))}
               {/* Padding to center the selected item */}
@@ -135,4 +134,4 @@ const HeightSelection = ({ onNext, onBack, onSkip, currentStep, totalSteps, data
   );
 };
 
-export default HeightSelection;
+export default WeightSelection;
