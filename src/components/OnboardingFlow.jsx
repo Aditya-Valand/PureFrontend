@@ -99,7 +99,7 @@ const OnboardingFlow = () => {
       }
   
       const response = await axios.put(
-        'http://localhost:3000/user/profile',
+        `${import.meta.env.VITE_BASE_URL}/user/profile`,
         {
           userProfile: formData
         },
@@ -137,7 +137,7 @@ const handleNext = async (stepData) => {
     setFormData(updatedFormData);
 
     const response = await axios.put(
-      'http://localhost:3000/user/profile',
+      `${import.meta.env.VITE_BASE_URL}/user/profile`,
       {
         userProfile: updatedFormData
       },

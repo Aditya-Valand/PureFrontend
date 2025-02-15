@@ -1,7 +1,9 @@
-// ChatBot.jsx
 import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext'; // Import AuthContext
+import { marked } from 'marked'; // Import marked for parsing markdown
 
 const ChatBot = () => {
+  const Auth = useAuth(); // Get the token from AuthContext
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -25,29 +27,60 @@ const ChatBot = () => {
       timestamp: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, newMessage]);
+    setMessages((prev) => [...prev, newMessage]);
     setInputMessage('');
     setIsTyping(true);
 
     try {
-      setTimeout(() => {
+      // Fetch response from the API endpoint with Authorization token
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/chat/bot`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${Auth.user.token}`, // Use token from AuthContext
+        },
+        body: JSON.stringify({ prompt: inputMessage }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch response from server');
+      }
+      const data = await response.json();
+
+      // Updated logic to handle dummy JSON structure
+      if (data.status === "success" && data.data.length > 0) {
+        const aiResponseContent = data.data;// Combine all parts into a single string
         const aiResponse = {
-          content: "This is a sample AI response. Replace with actual API integration.",
+          content: aiResponseContent,
           sender: 'ai',
           timestamp: new Date().toISOString(),
         };
-        setMessages(prev => [...prev, aiResponse]);
-        setIsTyping(false);
-      }, 1000);
+        setMessages((prev) => [...prev, aiResponse]);
+      } else {
+        throw new Error('Invalid response format from server');
+      }
     } catch (error) {
       console.error('Error:', error);
+      const errorMessage = {
+        content:
+          error.message || "Sorry, I couldn't process your message. Please try again.",
+        sender: 'ai',
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
     }
   };
 
+  // Function to render markdown as HTML without sanitization
+  const renderMarkdown = (markdownText) => {
+    return marked(markdownText); // Convert markdown to HTML using marked.js
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[#F5F9F6]">
-      {/* Improved Header */}
+      {/* Header */}
       <div className="bg-white shadow-sm px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="relative">
@@ -85,14 +118,23 @@ const ChatBot = () => {
                   : 'bg-white text-gray-800 shadow-sm rounded-bl-sm'
               }`}
             >
-              <p className="text-sm">{message.content}</p>
+              {message.sender === 'ai' ? (
+                // Render AI messages as parsed markdown with Tailwind typography styling
+                <div
+                  className="prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                />
+              ) : (
+                // Render user messages as plain text
+                <p className="text-sm">{message.content}</p>
+              )}
               <span className="text-xs opacity-70 mt-1 block">
                 {new Date(message.timestamp).toLocaleTimeString()}
               </span>
             </div>
           </div>
         ))}
-        
+
         {isTyping && (
           <div className="flex justify-start">
             <div className="bg-white rounded-2xl p-3 shadow-sm">
@@ -120,6 +162,7 @@ const ChatBot = () => {
           <button
             type="submit"
             className="p-2 bg-[#4CAF50] text-white rounded-full hover:bg-green-600 transition-colors"
+            disabled={isTyping}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />

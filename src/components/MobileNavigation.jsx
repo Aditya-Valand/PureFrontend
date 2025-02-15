@@ -8,8 +8,10 @@ import feature from "../assets/feature.png"
 import logo from "../assets/logo.png"
 import ImageCapture from './ImageCapture';
 import ScanAfter from './scanAfter';
+import { useNavigate } from 'react-router-dom';
 
 const MobileNavigation = () => {
+  const navigate = useNavigate();
   const [isFabMenuOpen, setFabMenuOpen] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [activeNavItem, setActiveNavItem] = useState(null);
@@ -20,18 +22,18 @@ const MobileNavigation = () => {
 
 
   const navItems = [
-    { icon: <User className="w-6 h-6" />, label: 'Profile' },
-    { icon: <Tag className="w-6 h-6" />, label: 'Features' },
+    { icon: <User className="w-6 h-6" />, label: 'Profile', path: '/profile' },
+    { icon: <Tag className="w-6 h-6" />, label: 'Features',path:'/plans' },
     { icon: <Bot className="w-6 h-6 hidden " />, label: 'AI Chat' },
     { icon: <Bot className="w-6 h-6 hidden " />, label: 'AI Chat' },
-    { icon: <Bot className="w-6 h-6" />, label: 'AI Chat' },
-    { icon: <Grid className="w-6 h-6" />, label: 'More' }
+    { icon: <Bot className="w-6 h-6" />, label: 'chatbot',path: '/insightbuddy' },
+    { icon: <Grid className="w-6 h-6" />, label: 'More',path: '/feature' }
   ];
   
   const fabOptions = [
     {
       icon: <QrCode className="w-10 h-10" />,
-      label: 'Scan QR Code',
+      label: 'Scan Product',
       onClick: () => {
         setFabMenuOpen(false);
         setShowImageCapture(true);
@@ -54,6 +56,10 @@ const MobileNavigation = () => {
       setShowImageCapture(false);
       setCaptureMode(null);
     }
+  };
+  const handleNavigation = (path) => {
+    navigate(path);
+    setSidebarOpen(false);
   };
 
   return (
@@ -143,14 +149,14 @@ const MobileNavigation = () => {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg py-4 px-6 rounded-t-3xl border-t border-gray-200/50 shadow-lg">
         <div className="flex justify-between items-center">
-          {navItems.map((item, index) => (
+          {navItems.map((item) => (
             <button
-              key={index}
+              key={item.path}
               className="relative flex flex-col items-center group"
-              onClick={() => setActiveNavItem(index)}
+              onClick={() => handleNavigation(item.path)}
             >
               {item.icon}
-              <div className={`absolute -bottom-1 left-0 w-full h-1 bg-gradient-to-r from-green-700 via-green-500 to-green-600 rounded-full transition-all duration-300 ${activeNavItem === index ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'}`} />
+              <div className={`absolute -bottom-1 left-0 w-full h-1 bg-gradient-to-r from-green-700 via-green-500 to-green-600 rounded-full transition-all duration-300 ${location.pathname === item.path ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'}`} />
             </button>
           ))}
         </div>

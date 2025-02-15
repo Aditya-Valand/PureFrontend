@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import Webcam from 'react-webcam';
 import { X, Upload, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const ImageCapture = ({ isOpen, onClose, mode, onAnalysisComplete }) => {
   const [imagePreview, setImagePreview] = useState(null);
@@ -8,6 +9,7 @@ const ImageCapture = ({ isOpen, onClose, mode, onAnalysisComplete }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null)
+   const Auth = useAuth(); 
   
   const webcamRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -73,11 +75,11 @@ const ImageCapture = ({ isOpen, onClose, mode, onAnalysisComplete }) => {
       const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_DURATION);
       
       try {
-        const response = await fetch('http://localhost:3000/process/analysis', {
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/process/analysis`, {
           method: 'POST',
           body: formData,
           headers: {
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2Nzk3ODY1YTYwNmViNjE1MTdkNWVhMTUiLCJuYW1lIjoiQW5pcnVkaCBTaW5naCIsImVtYWlsIjoidmlvbGVudGFuaXJ1ZGhAZ21haWwuY29tIiwic3RhdHVzIjoiYWN0aXZlIiwicm9sZSI6InVzZXIiLCJjb2lucyI6MTAwLCJzb3VyY2UiOiJzZWxmIiwidG9rZW4iOiIiLCJ2ZXJzaW9uIjo0OSwiYXR0ZW1wdCI6MCwicHJvZmlsZSI6ZmFsc2UsImlhdCI6MTczOTU0MDMwOSwiZXhwIjoxNzQwMTQ1MTA5fQ.lpNWDLS_kUI9vXDNdqZc6NwDA0DwR_ek3Bqs2HRkPfo'
+            'Authorization': `Bearer ${Auth.user.token}`
           },
           signal: controller.signal
         });

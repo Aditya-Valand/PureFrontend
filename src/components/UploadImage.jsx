@@ -39,11 +39,12 @@ const UploadImage = ({ isOpen, onClose }) => {
 
       formData.append('image', blob, 'uploaded-image.jpg');
 
-      // Send POST request with FormData
-      const response = await fetch('https://pureinsight-v2.vercel.app/process/analysis', {
-        method: 'POST',
-        body: formData,
-      });
+     // Send POST request with FormData
+const response = await fetch(`${import.meta.env.VITE_BASE_URL}/process/analysis`, {
+  method: 'POST',
+  body: formData,
+});
+
 
       if (!response.ok) {
         throw new Error(`Error: ${response.statusText}`);

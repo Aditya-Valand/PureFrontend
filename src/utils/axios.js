@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    baseURL: 'http://localhost:3000/auth/', // Adjust as per your backend configuration
+    baseURL: `${import.meta.env.VITE_BASE_URL}/auth/`, // Adjust as per your backend configuration
     headers: {
         'Content-Type': 'application/json',
     },
