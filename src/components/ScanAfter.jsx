@@ -1,11 +1,71 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, X, Leaf, AlertCircle, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Leaf, AlertCircle, Info, Search } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 
 function ScanAfter({ analysisData }) {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState(null);
   const [showSuccess, setShowSuccess] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState(null);
+  const Auth = useAuth();
 
+  // Initialize deep analysis
+  const initializeAnalysis = async () => {
+    setIsAnalyzing(true);
+    setAnalysisError(null);
+  
+    // Check if user is authenticated
+    if (!Auth.user || !Auth.user.token) {
+      setAnalysisError('Please log in to perform analysis');
+      setIsAnalyzing(false);
+      return;
+    }
+  
+    try {
+      const requestData = {
+        slug: analysisData.slug,
+      };
+  
+      // Make the backend request
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/chat/initialize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Auth.user.token}`,
+        },
+        body: JSON.stringify(requestData),
+      });
+  
+      const data = await response.json();
+      console.log('Response Data:', data);
+  
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to initialize analysis');
+      }
+  
+      if (data.data.session) {
+        // Redirect to the desired frontend URL
+        const frontendBaseUrl = `${window.location.origin}`; // Dynamically gets the current frontend base URL
+        const redirectUrl = `${frontendBaseUrl}/chat/history/${data.data.session}`;
+        
+        console.log('Redirecting to:', redirectUrl);
+        window.location.href = redirectUrl; // Perform the redirection
+      } else {
+        throw new Error('No session data received');
+      }
+  
+    } catch (error) {
+      console.error('Analysis initialization failed:', error);
+      setAnalysisError(error.message || 'Failed to start analysis. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+  
   // Early return with loading state if no data
   if (!analysisData) {
     return (
@@ -182,6 +242,18 @@ function ScanAfter({ analysisData }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+
+<button
+        onClick={initializeAnalysis}
+        disabled={isAnalyzing}
+        className="fixed bottom-8 right-8 w-16 h-16 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 z-50 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isAnalyzing ? (
+          <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <Search className="w-6 h-6" />
+        )}
+      </button>
       {/* Success Notification */}
       {showSuccess && (
         <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-down">
@@ -192,6 +264,20 @@ function ScanAfter({ analysisData }) {
         </div>
       )}
 
+      {analysisError && (
+        <div className="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in-down">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5" />
+            <span>{analysisError}</span>
+            <button 
+              onClick={() => setAnalysisError(null)}
+              className="ml-2 hover:opacity-75"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">

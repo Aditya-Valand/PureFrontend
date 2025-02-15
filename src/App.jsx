@@ -16,6 +16,8 @@ import Read from './components/Read';
 // Auth and Protection
 import AuthProvider from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import DeepAnalyze from './components/DeepAnalyze';
+import ProfilePage from './components/ProfilePage';
 
 const App = () => {
   return (
@@ -56,9 +58,18 @@ const App = () => {
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/aboutus" element={<AboutUs />} />
             <Route path="/search" element={<SearchApp />} />
             <Route path="/read/:slug" element={<Read/>} />
+            <Route path="/chat/history/:session" element={<DeepAnalyze/>} />
           </Routes>
         </Router>
       </AuthProvider>
