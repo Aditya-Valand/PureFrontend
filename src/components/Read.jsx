@@ -24,7 +24,7 @@ const Read = () => {
 
         const apiUrl = `${import.meta.env.VITE_BASE_URL}/process/read/${slug}`;
         const response = await fetch(apiUrl, {
-          method: "GET",
+          method: "GET",    
           headers: {
             Authorization: `Bearer ${Auth.user.token}`, // Add token to request header
           },
