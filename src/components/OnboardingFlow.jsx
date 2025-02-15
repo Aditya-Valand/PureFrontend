@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AgeSelection from './AgeSelection';
-import AllergySelection from './AllergySelection.jsx'; // Changed to default import
-import  GoalSelection  from './GoalSelection.jsx';
+import AllergySelection from './AllergySelection.jsx';
+import GoalSelection from './GoalSelection.jsx';
 import HeightSelection from './HeightSelection.jsx';
 import ActivityLevel from './ActivityLevel.jsx';
 import DietSelection from './DietSelection.jsx';
 import WeightSelection from './WeightSelection.jsx';
 import GenderSelection from './GenderSelection.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
-
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 const steps = [
   
   {
@@ -71,7 +70,7 @@ const OnboardingFlow = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [skippedSteps, setSkippedSteps] = useState([]);
-
+  const [isValid, setIsValid] = useState(true);
   const [formData, setFormData] = useState({
     age: '',
     gender: '',
@@ -82,6 +81,14 @@ const OnboardingFlow = () => {
     goals: '',
     allergies: '',
   });
+
+  useEffect(() => {
+    if (!steps || steps.length === 0 || currentStep < 0 || currentStep >= steps.length) {
+      setIsValid(false);
+    } else {
+      setIsValid(true);
+    }
+  }, [currentStep]);
 
   const handleComplete = async () => {
     try {
@@ -105,63 +112,58 @@ const OnboardingFlow = () => {
       );
   
       if (response.status === 200) {
-        completeOnboarding();
         navigate('/');
       }
     } catch (error) {
       console.error('Error saving profile:', error.response?.data || error.message);
     }
   };
-  
-  
-  const handleNext = async (stepData) => {
-    try {
-      const token = Cookies.get('token');
-      
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-  
-      // Update local state
-      const updatedFormData = {
-        ...formData,
-        ...stepData
-      };
-      setFormData(updatedFormData);
-  
-      // Make API call to update profile
-      const response = await axios.put(
-        'http://localhost:3000/user/profile',
-        {
-          userProfile: updatedFormData
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-  
-      if (response.status === 200) {
-        if (currentStep < steps.length) {
-          setCurrentStep((prev) => prev + 1);
-        } else {
-          handleComplete();
-        }
-      }
-    } catch (error) {
-      console.error('Error updating profile:', error.response?.data || error.message);
+
+  // First, import useAuth at the top
+
+// In your OnboardingFlow component, update the handleNext function:
+const handleNext = async (stepData) => {
+  try {
+    const token = Cookies.get('token');
+    
+    if (!token) {
+      throw new Error('Authentication token not found');
     }
-  };
-  
-  
-  
-  
+
+    const updatedFormData = {
+      ...formData,
+      ...stepData
+    };
+    setFormData(updatedFormData);
+
+    const response = await axios.put(
+      'http://localhost:3000/user/profile',
+      {
+        userProfile: updatedFormData
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (response.status === 200) {
+      if (currentStep === steps.length - 1) {
+        completeOnboarding();  // Mark onboarding as complete
+        navigate('/');         // Navigate to home
+      } else {
+        setCurrentStep((prev) => prev + 1);  // Go to next step if not on last step
+      }
+    }
+  } catch (error) {
+    console.error('Error updating profile:', error.response?.data || error.message);
+  }
+};
 
   const handleBack = () => {
     if (currentStep > 0) {
-      // Find the previous non-skipped step
       let prevStep = currentStep - 1;
       while (prevStep >= 0 && skippedSteps.includes(prevStep)) {
         prevStep--;
@@ -176,7 +178,7 @@ const OnboardingFlow = () => {
     if (steps[currentStep].isSkippable) {
       setSkippedSteps(prev => [...prev, currentStep]);
       
-      if (currentStep < steps.length) {
+      if (currentStep < steps.length - 1) {
         setCurrentStep(prev => prev + 1);
       } else {
         handleComplete();
@@ -184,7 +186,10 @@ const OnboardingFlow = () => {
     }
   };
 
-  
+  if (!isValid) {
+    return <div>Invalid step configuration</div>;
+  }
+
   const CurrentStepComponent = steps[currentStep].component;
 
   return (

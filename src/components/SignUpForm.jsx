@@ -85,8 +85,6 @@ const SignupForm = () => {
     },
     onError: () => setMessage('Google login failed'),
   });
-  console.log('Navigate function:', navigate);
-
 
   // Toggle between sign-up and log-in modes
   const toggleAuthMode = () => {
