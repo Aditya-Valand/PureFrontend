@@ -8,8 +8,10 @@ import AboutUs from './components/AboutUs';
 import SignUpForm from './components/SignUpForm';
 import OnboardingFlow from './components/OnboardingFlow';
 import MobileNavigation from './components/MobileNavigation';
-import ScanAfter from './components/scanAfter';
+import ScanAfter from './components/ScanAfter';
 import ChatBot from './components/ChatBot';
+import SearchApp from './components/Search';
+import Read from './components/Read';
 
 // Auth and Protection
 import AuthProvider from './context/AuthContext';
@@ -55,6 +57,8 @@ const App = () => {
               } 
             />
             <Route path="/aboutus" element={<AboutUs />} />
+            <Route path="/search" element={<SearchApp />} />
+            <Route path="/read/:slug" element={<Read/>} />
           </Routes>
         </Router>
       </AuthProvider>

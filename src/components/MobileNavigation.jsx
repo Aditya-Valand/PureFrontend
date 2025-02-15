@@ -7,10 +7,10 @@ import chat from "../assets/chat.svg"
 import feature from "../assets/feature.png"
 import logo from "../assets/logo.png"
 import ImageCapture from './ImageCapture';
-import ScanAfter from './scanAfter';
+import ScanAfter from './ScanAfter';
 import { useNavigate } from 'react-router-dom';
 
-const MobileNavigation = () => {
+const MobileNavigation = ({ children }) => {
   const navigate = useNavigate();
   const [isFabMenuOpen, setFabMenuOpen] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -57,6 +57,7 @@ const MobileNavigation = () => {
       setCaptureMode(null);
     }
   };
+
   const handleNavigation = (path) => {
     navigate(path);
     setSidebarOpen(false);
@@ -132,19 +133,22 @@ const MobileNavigation = () => {
       </button>
 
       <ImageCapture
-  isOpen={showImageCapture}
-  onClose={handleCloseImageCapture}
-  mode={captureMode}
-  // Add these lines
-  onAnalysisComplete={(data) => {
-    setAnalysisData(data.data);
-    console.log(analysisData);
-    setShowImageCapture(false);
-  }}
-/>
-{/* Add ScanAfter component */}
-{analysisData && <ScanAfter analysisData={analysisData} />}
-
+        isOpen={showImageCapture}
+        onClose={handleCloseImageCapture}
+        mode={captureMode}
+        // Add these lines
+        onAnalysisComplete={(data) => {
+          setAnalysisData(data.data);
+          console.log(analysisData);
+          setShowImageCapture(false);
+        }}
+      />
+      {/* Add ScanAfter component */}
+      {analysisData && <ScanAfter analysisData={analysisData} />}
+      
+      <div className='pb-20'>
+        {children}
+      </div>
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg py-4 px-6 rounded-t-3xl border-t border-gray-200/50 shadow-lg">
