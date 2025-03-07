@@ -18,6 +18,8 @@ import AuthProvider from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import DeepAnalyze from './components/DeepAnalyze';
 import ProfilePage from './components/ProfilePage';
+import PricingPlans from './components/PricingPlans';
+import WhyChooseUs from './components/WhyChooseUs';
 
 const App = () => {
   return (
@@ -47,6 +49,22 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <ScanAfter />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/plans" 
+              element={
+                <ProtectedRoute>
+                  <PricingPlans />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/feature" 
+              element={
+                <ProtectedRoute>
+                  <WhyChooseUs />
                 </ProtectedRoute>
               } 
             />

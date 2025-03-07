@@ -1,19 +1,33 @@
 import React, { useEffect, useState } from "react";
-import { Settings, CreditCard, History, Edit, HelpCircle, LogOut, Trash2 } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
+
+import { Settings, CreditCard, History, Edit, HelpCircle, LogOut, Trash2,ArrowLeft } from "lucide-react";
 import axios from "axios";
 
 const MONGO_URI = "mongodb+srv://<username>:<password>@pureinsight-shard-00-00.64sx4.mongodb.net/<database>?retryWrites=true&w=majority";
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
+  const navigate = useNavigate();
   const [completedSteps, setCompletedSteps] = useState(0);
   const [skippedSteps, setSkippedSteps] = useState([]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const totalSteps = 8;
 
   useEffect(() => {
     fetchUserProfile();
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   const fetchUserProfile = async () => {
     try {
       // Replace this with your backend API call to fetch user data
@@ -51,6 +65,16 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {isMobile && (
+        <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-lg shadow-sm px-6 py-4 flex items-center">
+          <button 
+            onClick={() => navigate(-1)} 
+            className="p-2 rounded-full hover:bg-gray-100 mr-4"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
+          </button>
+        </div>
+      )}
       {/* Profile Header */}
       <div className="bg-white p-6 shadow-sm">
         <div className="max-w-lg mx-auto">

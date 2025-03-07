@@ -3,6 +3,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import apiClient from '../utils/axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import googlelogo from '../assets/GoogleLogo.svg'
 
 const SignupForm = () => {
   const { login } = useAuth();
@@ -40,7 +41,7 @@ const SignupForm = () => {
       [name]: type === 'checkbox' ? checked : value,
     }));
 
-    console.log('Updated form data:', { ...formData, [name]: type === 'checkbox' ? checked : value });
+    // console.log('Updated form data:', { ...formData, [name]: type === 'checkbox' ? checked : value });
   };
 
   // Handle form submission
@@ -211,7 +212,7 @@ const SignupForm = () => {
               onClick={() => googleLogin()}
               className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 py-3 rounded-xl hover:bg-gray-50 transition duration-200"
             >
-              <img src="/google-icon.png" alt="Google" className="w-5 h-5" />
+              <img src={googlelogo} alt="Google" className="w-5 h-5" />
               Sign In with Google
             </button>
           </form>

@@ -1,7 +1,23 @@
 import React from 'react';
-import { CheckCircle, Clock, MessageCircle } from 'lucide-react';
+import { useState , useEffect } from 'react';
+import { CheckCircle, Clock, MessageCircle, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 
 const WhyChooseUs = () => {
+  const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   const features = [
     {
       icon: <CheckCircle className="w-16 h-16" />,
@@ -30,8 +46,18 @@ const WhyChooseUs = () => {
   ];
 
   return (
-    <div className="w-full bg-gray-50 py-24 md:py-32">
-      <div className="max-w-8xl mx-auto px-6">
+    <div className="w-full bg-gray-50 py-26 md:py-32">
+      {isMobile && (
+        <div className="sticky top-0 z-10 bg-transperent backdrop-blur-lg shadow-sm px-6 py-4 flex items-center">
+          <button 
+            onClick={() => navigate(-1)} 
+            className="p-2 rounded-full hover:bg-gray-100 mr-4"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
+          </button>
+        </div>
+      )}
+      <div className="max-w-8xl my-5 mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">Why Choose Us?</h2>
         </div>
