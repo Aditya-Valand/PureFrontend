@@ -8,6 +8,7 @@ import DietSelection from './DietSelection.jsx';
 import WeightSelection from './WeightSelection.jsx';
 import GenderSelection from './GenderSelection.jsx';
 import { useNavigate } from 'react-router-dom';
+
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -98,10 +99,25 @@ const OnboardingFlow = () => {
         throw new Error('Authentication token not found');
       }
   
+      // Ensure all required fields are filled before marking as onboarded
+      const requiredFields = ['age', 'gender', 'height', 'weight'];
+      const isProfileComplete = requiredFields.every(field => 
+        formData[field] && formData[field].trim() !== ''
+      );
+  
+      if (!isProfileComplete) {
+        // Show an error or prevent submission
+        showToast('Please complete all required fields', true);
+        return;
+      }
+  
       const response = await axios.put(
         `${import.meta.env.VITE_BASE_URL}/user/profile`,
         {
-          userProfile: formData
+          userProfile: {
+            ...formData,
+            isOnboarded: true  // Explicitly set onboarding to true
+          }
         },
         {
           headers: {
@@ -112,7 +128,8 @@ const OnboardingFlow = () => {
       );
   
       if (response.status === 200) {
-        navigate('/');
+        completeOnboarding();  // Update local state
+        navigate('/');  // Redirect to home
       }
     } catch (error) {
       console.error('Error saving profile:', error.response?.data || error.message);

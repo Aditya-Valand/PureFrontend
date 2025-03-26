@@ -20,6 +20,7 @@ import DeepAnalyze from './components/DeepAnalyze';
 import ProfilePage from './components/ProfilePage';
 import PricingPlans from './components/PricingPlans';
 import WhyChooseUs from './components/WhyChooseUs';
+import Blog from './components/Blog';
 
 const App = () => {
   return (
@@ -64,7 +65,7 @@ const App = () => {
               path="/feature" 
               element={
                 <ProtectedRoute>
-                  <WhyChooseUs />
+                  <Blog />
                 </ProtectedRoute>
               } 
             />

@@ -6,13 +6,17 @@ import price from "../assets/price.svg"
 import chat from "../assets/chat.svg"
 import feature from "../assets/feature.png"
 import logo from "../assets/logo.png"
+import { io } from 'socket.io-client';
 import ImageCapture from './ImageCapture';
 import ScanAfter from './ScanAfter';
 import { useNavigate } from 'react-router-dom';
 import health from "../assets/health.jpeg"
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const MobileNavigation = ({ children }) => {
   const navigate = useNavigate();
+  const Auth = useAuth();
   // const location = useLocation();
   const [isFabMenuOpen, setFabMenuOpen] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -21,6 +25,10 @@ const MobileNavigation = ({ children }) => {
   const [captureMode, setCaptureMode] = useState(null);
   const [analysisData, setAnalysisData] = useState(null);
   const [scrolled, setScrolled] = useState(false);
+  const [recentScans, setRecentScans] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10;
@@ -34,6 +42,46 @@ const MobileNavigation = ({ children }) => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [scrolled]);
+  
+  useEffect(() => {
+    fetchRecentScans();
+  }, [Auth.user?.token]);
+  
+  const fetchRecentScans = async () => {
+    if (!Auth.user?.token) {
+      console.error("No authentication token available");
+      return;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/analysis/recent-scans`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${Auth.user.token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch recent scans');
+      }
+      
+      const data = await response.json();
+      setRecentScans(data || []);
+    } catch (err) {
+      console.error('Error fetching recent scans:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  
+  
+  
 
 
 
@@ -66,7 +114,32 @@ const MobileNavigation = ({ children }) => {
       }
     }
   ];
-
+  const handleNewScan = async (scanData) => {
+    if (!Auth.user?.token) {
+      console.error("No authentication token available");
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/analysis/new-scan`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Auth.user.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(scanData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save scan');
+      }
+      
+      // Refresh the recent scans after adding a new one
+      fetchRecentScans();
+    } catch (err) {
+      console.error('Error saving new scan:', err);
+    }
+  };
   const handleCloseImageCapture = () => {
     if (!analysisData) {
       setShowImageCapture(false);
@@ -78,6 +151,28 @@ const MobileNavigation = ({ children }) => {
     navigate(path);
     setSidebarOpen(false);
   };
+  const handleSignOut = async () => {
+    try {
+      // Call your backend signout route
+      // await axios.post('/signout');
+      
+      // Clear any local storage or state related to user authentication
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    // Clear any other auth-related items you might have stored
+    
+    // If you're using cookies, you might want to clear them too
+    document.cookie.split(";").forEach((cookie) => {
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+    });
+      navigate('/account');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+  
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -87,10 +182,10 @@ const MobileNavigation = ({ children }) => {
         <div className="flex justify-between items-center">
           <div>
             <div className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              Hey Aditya <span className="text-yellow-400">👋</span>
+              Hey {Auth.user.name } <span className="text-yellow-400">👋</span>
             </div>
             <div className="mt-1 text-sm font-semibold bg-gradient-to-r from-violet-600 to-indigo-500 bg-clip-text text-transparent leading-tight max-w-[250px]">
-              Know Your Nutrition. Choose Better.
+              Know Your Products. Choose Better.
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -156,7 +251,39 @@ const MobileNavigation = ({ children }) => {
         </div>
       </div>
     </div>
-
+    <div className="mt-6 px-6">
+      <div className="relative overflow-hidden rounded-2xl">
+         <div className="absolute inset-0 bg-gradient-to-br from-teal-500 via-cyan-400 to-blue-500 opacity-90"></div>
+        <div className="absolute inset-0 bg-[url('https://uploads-ssl.webflow.com/6168efee0c2ef4c9c0af3fdb/6192bb03ce9b2b3ccc978bbc_texture-noise.png')] opacity-5"></div>
+        <div className="relative p-6 flex items-center">
+          <div className="flex-1">
+            <h2 className="text-white font-bold text-xl mb-2">
+            Smart Skincare Analysis
+            </h2>
+            <p className="text-indigo-100 text-sm mb-5 font-medium">
+            Analyze ingredients, compatibility and effectiveness.
+            </p>
+            <button className="bg-white text-indigo-600 px-6 py-2.5 rounded-lg font-medium text-sm hover:shadow-lg transition-all flex items-center gap-1.5 shadow-md shadow-indigo-600/20 w-auto ">
+            Explore Features<ChevronRight className="w-4 h-4 " />
+            </button>
+          </div>
+          <div className="w-32 h-32 relative">
+            <div className="absolute w-32 h-32 bg-white/20 rounded-full blur-xl"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-28 h-28 bg-white/10 backdrop-blur-sm rounded-full p-2 border border-white/20 shadow-xl">
+                <div className="w-full h-full bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
+                  <img 
+                    src={health}
+                    alt="Skincare products" 
+                    className="w-full h-full object-cover mix-blend-luminosity"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     {/* Trending Products */}
     <div className="mt-8 px-6">
       <div className="flex justify-between items-center mb-5">
@@ -186,38 +313,73 @@ const MobileNavigation = ({ children }) => {
       </div>
     </div>
     
-    {/* Recent Scans Section */}
-    <div className="mt-6 px-6 mb-24">
-      <div className="flex justify-between items-center mb-5">
-        <h2 className="text-lg font-bold text-gray-900">Recent Scans</h2>
-        <button className="text-sm text-indigo-600 font-medium">View All</button>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        {[1, 2, 3, 4].map((item) => (
-          <div key={item} className="bg-white rounded-xl shadow-sm border border-gray-50 overflow-hidden hover:shadow-md transition-all">
-            <div className="w-full h-24 bg-gray-100 relative">
-              <div className={`absolute top-2 right-2 bg-${item % 2 === 0 ? 'green' : 'yellow'}-100 text-${item % 2 === 0 ? 'green' : 'yellow'}-600 text-xs font-medium px-2 py-0.5 rounded-full`}>
-                {item % 2 === 0 ? 'Healthy' : 'Warning'}
-              </div>
-            </div>
-            <div className="p-3">
-              <div className="text-sm font-medium text-gray-900 mb-1 truncate">Product {item}</div>
-              <div className="text-xs text-gray-500 flex items-center justify-between">
-                <span>2h ago</span>
-                <span className={`text-${item % 2 === 0 ? 'green' : 'yellow'}-500 font-medium`}>
-                  {item % 2 === 0 ? '92%' : '68%'}
-                </span>
-              </div>
-            </div>
+{/* Recent Scans Section */}
+{/* // In your MobileNavigation.jsx */}
+{/* // Keep only one Recent Scans section */}
+<div className="mt-6 px-6 mb-24">
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-lg font-bold text-gray-900">Recent Scans</h2>
+          <button 
+            className="text-sm text-indigo-600 font-medium"
+            onClick={fetchRecentScans}
+          >
+            {isLoading ? 'Loading...' : 'Refresh'}
+          </button>
+        </div>
+        
+        {error && (
+          <div className="text-red-500 mb-4 text-center">
+            Error: {error}
           </div>
-        ))}
+        )}
+        
+        <div className="grid grid-cols-2 gap-4">
+          {isLoading ? (
+            <div className="col-span-2 text-center py-8 text-gray-500">
+              Loading recent scans...
+            </div>
+          ) : recentScans && recentScans.length > 0 ? (
+            recentScans.map((scan) => (
+              <div 
+                key={scan.id} 
+                className="bg-white rounded-xl shadow-sm border border-gray-50 overflow-hidden hover:shadow-md transition-all"
+                onClick={() => navigate(`/analysis/${scan.id}`)}
+              >
+                <div className="w-full h-24 bg-gray-100 relative">
+                  <div className={`absolute top-2 right-2 ${
+                    scan.score >= 70 ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'
+                  } text-xs font-medium px-2 py-0.5 rounded-full`}>
+                    {scan.status}
+                  </div>
+                </div>
+                <div className="p-3">
+                  <div className="text-sm font-medium text-gray-900 mb-1 truncate">{scan.product}</div>
+                  <div className="text-xs text-gray-500 flex items-center justify-between">
+                    <span>{scan.timeAgo}</span>
+                    <span className={`${
+                      scan.score >= 70 ? 'text-green-500' : 'text-yellow-500'
+                    } font-medium`}>
+                      {scan.score}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-2 text-center py-8 text-gray-500">
+              No recent scans. Scan a product to get started!
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+
+{/* // Remove the second Recent Scans section completely */}
+
 
     
       
       {/* Recent Scans Section */}
-      <div className="px-6 mb-6">
+      {/* <div className="px-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-gray-800">Recent Scans</h2>
           <button className="text-sm text-blue-500 font-medium">View All</button>
@@ -231,36 +393,34 @@ const MobileNavigation = ({ children }) => {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
       {/* Hamburger Menu Button */}
       <div className={`fixed top-0 right-0 w-80 h-full bg-white/95 backdrop-blur-xl transform transition-transform duration-300 z-50 shadow-xl ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex flex-col h-full">
-          <div className="pt-12 pb-6 px-6 border-b border-gray-100">
+          <div className="pt-12 pb-6 px-6 border-b border-gray-100 relative">
             <img src={logo} alt="Logo" className="h-10 w-auto mb-6" />
-            <div className="flex items-center">
-              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg mr-3">
-                A
-              </div>
-              <div>
-                <div className="font-semibold text-gray-900">Aditya</div>
-                <div className="text-sm text-gray-500">Premium Member</div>
-              </div>
-            </div>
           </div>
           <div className="flex-1 py-6">
-            {['My Profile', 'Premium Plans', 'Saved Products', 'Nutritional Goals', 'Preferences', 'Help & Support'].map((item, index) => (
+          {[
+    { name: 'Premium Plans', path: '/plans' },
+    { name: 'InsightBuddy', path: '/insightbuddy' },
+    { name: 'Blogs', path: '/feature' },
+    { name: 'About Us', path: '/AboutUs' },
+    { name: 'Help & Support', path: '/plans' }
+  ].map((item, index) => (
               <a
-                key={item}
-                href="#"
+                key={item.name}
+                href={item.path}
                 className="flex items-center justify-between px-6 py-3.5 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                onClick={() => setSidebarOpen(false)}
               >
-                <span className="font-medium">{item}</span>
+                <span className="font-medium">{item.name}</span>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </a>
             ))}
           </div>
           <div className="py-6 px-6 border-t border-gray-100">
-            <button className="w-full py-3 rounded-lg border border-gray-200 text-gray-700 font-medium">
+            <button className="w-full py-3 rounded-lg border border-gray-200 text-gray-700 font-medium" onClick={handleSignOut}>
               Sign Out
             </button>
           </div>
@@ -301,22 +461,23 @@ const MobileNavigation = ({ children }) => {
       {/* FAB Button - Adjusted positioning */}
       <button
         onClick={() => setFabMenuOpen(!isFabMenuOpen)}
-        className="fixed left-1/2 -translate-x-1/2 bottom-1 z-50 p-4 hover:shadow-green-500/30 transition-transform duration-300 hover:scale-105"
+        className={`fixed left-1/2 -translate-x-1/2 bottom-1 z-50 p-4 hover:shadow-green-500/30 transition-all duration-300 hover:scale-105 ${isSidebarOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
         <img src={fabbutton} alt="fabbutton" className="w-16 h-16" />
       </button>
 
       <ImageCapture
-        isOpen={showImageCapture}
-        onClose={handleCloseImageCapture}
-        mode={captureMode}
-        // Add these lines
-        onAnalysisComplete={(data) => {
-          setAnalysisData(data.data);
-          // console.log(analysisData);
-          setShowImageCapture(false);
-        }}
-      />
+  isOpen={showImageCapture}
+  onClose={handleCloseImageCapture}
+  mode={captureMode}
+  onAnalysisComplete={(data) => {
+    setAnalysisData(data.data);
+    setShowImageCapture(false);
+    
+    // Emit the new scan to the server if socket is connected
+    handleNewScan(data.data);}}
+/>
+
       {/* Add ScanAfter component */}
       {analysisData && <ScanAfter analysisData={analysisData} />}
       

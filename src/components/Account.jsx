@@ -50,14 +50,25 @@ const Account = () => {
   const handleGoogleError = (error) => {
     console.error('Google Login Failed:', error);
   };
-  const handleSuccessfulLogin = (token) => {
+  const handleSuccessfulLogin = (tokenData) => {
+    // Destructure relevant information from the token response
+    const { token, isOnboarded } = tokenData;
+  
+    // Store token and onboarding status
     localStorage.setItem('token', token);
-    setMessage(`${isSignin ? 'Login' : 'Registration'} successful!`);
-    setTimeout(() => {
-      window.location.href = '/scan';
-    }, 1000);
+    
+    login({
+      token,
+      isOnboarded
+    });
+    // If not onboarded, redirect to verify
+    if (!isOnboarded) {
+      window.location.href = '/verify';
+    } else {
+      // If already onboarded, redirect to home or dashboard
+      window.location.href = '/';
+    }
   };
-
   const showToast = (message, isError = false) => {
     Toastify({
       text: message,
